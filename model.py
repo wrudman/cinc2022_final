@@ -15,7 +15,8 @@ from resnet import ResNet18
 class PCGClassifier(pl.LightningModule):
     def __init__(self, mu=1.0, epsilon=1.0):
         super().__init__()
-        self.img_encoder =ResNet18(5) #nn.Sequential(nn.Conv2d(5, 1, 1, stride=4), nn.Flatten(), nn.Linear(3136, 3))#ResNet18(5) #TODO define this elsewhere
+        #CHANGE FOR SINGLE  
+        self.img_encoder =ResNet18(4) #nn.Sequential(nn.Conv2d(5, 1, 1, stride=4), nn.Flatten(), nn.Linear(3136, 3))#ResNet18(5) #TODO define this elsewhere
         self.img_encoder.linear = nn.Identity()
         self.murmur_clf = nn.Linear(512*49, 3) #MAGIC NUMBER change the 49
         self.outcome_clf = nn.Linear(512*49,2)
@@ -54,18 +55,28 @@ class PCGClassifier(pl.LightningModule):
         self.log("train_loss", loss, on_step=False, on_epoch=True, logger=False)
         return {'loss':loss, 'outcome_preds':outpreds.detach().cpu().numpy(),'murmur_preds':murmpreds.detach().cpu().numpy(), 'outcome_labels':yout.detach().cpu().numpy(), 'murmur_labels':ymurm.detach().cpu().numpy(), 'murmur_probs':self.sftmax(murmpreds).detach().cpu().numpy(), 'outcome_probs':self.sftmax(outpreds).detach().cpu().numpy()}
 
-    def validation_step(self, batch, batch_idx):
+    def test_step(self, batch, batch_idx):
         x, ymurm, yout = batch #This is data and label
         #maybe some resizing happens here
         xmurm, xoutcome = self(x) #same as calling my_model(...) (i.e. calls forward)
         murmloss = self.loss_fn(xmurm, ymurm)
         outcomeloss=self.loss_fn(xoutcome, yout)
         loss = (self.mu*murmloss)+(self.epsilon*outcomeloss)
-        
-        murmpreds = xmurm.argmax(dim=1)
-        outpreds  = xoutcome.argmax(dim=1)
+        #print("XMURM SHAPE", xmurm.shape, "OUTCOME SHAPE", xoutcome.shape)
+        murmpreds = xmurm#.argmax(dim=1)
+        outpreds  = xoutcome#.argmax(dim=1)
         self.log("val_loss", loss, on_step=False, on_epoch=True, logger=False)
+        #self.log('outcome_prf', precision_recall_fscore_support(outpreds.argmax(dim=1).detach().cpu().numpy(), yout.detach().cpu().numpy()), on_step=False, on_epoch=True, logger=False)
+        #self.log('murm_prf', precision_recall_fscore_support(murmpreds.argmax(dim=1).detach().cpu().numpy(), ymurm.detach().cpu().numpy()), on_step=False, on_epoch=True, logger=False)
         return {'loss':loss, 'outcome_preds':outpreds.detach().cpu().numpy(),'murmur_preds':murmpreds.detach().cpu().numpy(), 'outcome_labels':yout.detach().cpu().numpy(), 'murmur_labels':ymurm.detach().cpu().numpy(), 'murmur_probs':self.sftmax(murmpreds).detach().cpu().numpy(), 'outcome_probs':self.sftmax(outpreds).detach().cpu().numpy()}
+
+    def test_epoch_end(self, outputs):
+        # do something with the outputs of all test batches
+        print(outputs)
+        outcome_preds = outputs['outcome_preds']
+    
+        #some_result = calc_all_results(all_test_preds)
+        #self.log(some_result) 
 
     def predict_step(self, batch, batch_idx):
         x = batch
@@ -114,7 +125,7 @@ def collate_fn(batch):
     labels = torch.stack(labels).argmax(dim=1)
     outputs = {"patient_imgs": patient_imgs, "labels": labels}
     return tuple(outputs.values())
-
+    
     #if __name__ == "__main__":
     
     #wandb.init(project='cinc2022', name='test')
