@@ -74,9 +74,9 @@ def train_challenge_model(data_folder, model_folder, verbose):
     # Extract the features and labels.
     if verbose >= 1:
         print('Extracting features and labels from the Challenge data...') 
-    for i in range(10):
+    #for i in range(10):
        
-    #for i in range(num_patient_files):      
+    for i in range(num_patient_files):      
         data_dict[i] = {} 
         if verbose >= 2:
             print('    {}/{}...'.format(i+1, num_patient_files))
@@ -123,14 +123,13 @@ def train_challenge_model(data_folder, model_folder, verbose):
     # Comment out for submission
    
     
-    
     #data_dict = list(hickle.load('pre_train_imgs.hickle').values()) 
    
     print("...Begin Training") 
     
     #tracemalloc.start()
     # TODO: Change after pre-train 
-    train_loader = DataLoader(data_dict, batch_size=20, shuffle=False, collate_fn = collate_fn) 
+    train_loader = DataLoader(data_dict, batch_size=20, shuffle=False, collate_fn = collate_pretrain) 
     
     #wandb_logger = WandbLogger(project="cinc2022", name='model1.0') 
     # I changed it to model_folder bc that's the dir they'll make 
@@ -153,10 +152,10 @@ def train_challenge_model(data_folder, model_folder, verbose):
 
 
 def load_pretrained_model(model_folder, verbose):
-    if os.path.exists(os.path.join(model_folder, "pre_train_4.ckpt")):
-        filename = os.path.join(model_folder, 'pre_train_4.ckpt')
+    if os.path.exists(os.path.join(model_folder, "best_mini.ckpt")):
+        filename = os.path.join(model_folder, 'best_mini.ckpt')
     else:
-        filename = os.path.join(model_folder, 'pre_train_4-v1.ckpt')
+        filename = os.path.join(model_folder, 'best_mini-v1.ckpt')
     model = PCGClassifier.load_from_checkpoint(filename)
     return model#joblib.load(filename)
 

@@ -18,8 +18,8 @@ class PCGClassifier(pl.LightningModule):
         #CHANGE FOR SINGLE  
         self.img_encoder =ResNet18(4) #nn.Sequential(nn.Conv2d(5, 1, 1, stride=4), nn.Flatten(), nn.Linear(3136, 3))#ResNet18(5) #TODO define this elsewhere
         self.img_encoder.linear = nn.Identity()
-        self.murmur_clf = nn.Linear(512*49, 3) #MAGIC NUMBER change the 49
-        self.outcome_clf = nn.Linear(512*49,2)
+        self.murmur_clf = nn.Linear(12544, 3) #MAGIC NUMBER change the 49
+        self.outcome_clf = nn.Linear(12544,2)
         #self.clf_layer = nn.Linear(512, 3) #E.g. if hidden dimension is 512, go to 3: present, not present, unsure
         self.loss_fn = nn.CrossEntropyLoss()
         self.batch_size=10
