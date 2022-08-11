@@ -129,7 +129,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     
     #tracemalloc.start()
     # TODO: Change after pre-train 
-    train_loader = DataLoader(data_dict, batch_size=20, shuffle=False, collate_fn = collate_pretrain) 
+    train_loader = DataLoader(data_dict, batch_size=20, shuffle=False, collate_fn = collate_fn) 
     
     #wandb_logger = WandbLogger(project="cinc2022", name='model1.0') 
     # I changed it to model_folder bc that's the dir they'll make 
