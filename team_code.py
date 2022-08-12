@@ -173,7 +173,7 @@ def load_challenge_model(model_folder, verbose):
 # arguments of this function.
 def run_challenge_model(model, data, recordings, verbose):
      
-    sample = preprocess(data, recordings)  
+    sample = make_img(data, recordings)  
     test_dl = DataLoader([sample], batch_size=1) 
     murmur_classes = ['Present', 'Unknown', 'Absent']
     outcome_classes= ['Abnormal', 'Normal']
