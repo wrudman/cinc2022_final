@@ -75,7 +75,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     if verbose >= 1:
         print('Extracting features and labels from the Challenge data...') 
     #for i in range(10):
-       
+     
     for i in range(num_patient_files):      
         data_dict[i] = {} 
         if verbose >= 2:
@@ -137,11 +137,13 @@ def train_challenge_model(data_folder, model_folder, verbose):
    
     # LOAD MODEL AFTER PRE-TRAINED 
     #TODO: Make sure we 
-    net = load_pretrained_model(model_folder, verbose)
+    
+    #net = load_pretrained_model(model_folder, verbose)
     #net = load_challenge_model(model_folder, verbose)
     #TODO: Make sure we have the correct classifier here.  
     #net = PCGClassifier_Single()  
     net = PCGClassifier()
+    net.load_from_checkpoint("best_mini.ckpt") 
     net.train()
     trainer.fit(net, train_loader)
      
@@ -159,7 +161,6 @@ def load_pretrained_model(model_folder, verbose):
     model = PCGClassifier.load_from_checkpoint(filename)
     return model#joblib.load(filename)
 
-#TODO FOR FINAL CHANGE THIS ARG
 def load_challenge_model(model_folder, verbose):
     if os.path.exists(os.path.join(model_folder, "best-v1.ckpt")):
         filename = os.path.join(model_folder, 'best-v1.ckpt')
