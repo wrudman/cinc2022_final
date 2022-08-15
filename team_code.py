@@ -70,7 +70,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     location_order = ['AV', 'PV', 'TV', 'MV','Phc']
     #location_order = ['AV', 'PV', 'TV', 'MV'] 
     
-     
+    
     data_dict = {}
     # Extract the features and labels.
     if verbose >= 1:
@@ -124,7 +124,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
 
     # Comment out for submission
     
-     
+    
     #data_dict = list(hickle.load('pre_train_imgs.hickle').values()) 
    
     print("...Begin Training") 
@@ -145,7 +145,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     #TODO: Make sure we have the correct classifier here.  
     net = PCGClassifier_Single()  
     #net = PCGClassifier()
-    net.load_from_checkpoint("best_single_mini_drop.ckpt") 
+    net.load_from_checkpoint("best_single_mini.ckpt") 
     net.train()
     trainer.fit(net, train_loader)
      
