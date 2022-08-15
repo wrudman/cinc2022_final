@@ -34,7 +34,7 @@ from PIL import Image
 #TODO remove
 #import hickle
 #from random import shuffle 
-#from model_single import PCGClassifier_Single
+from model_single import PCGClassifier_Single
 #import tracemalloc
 #import wandb
 #from pytorch_lightning.loggers import WandbLogger
@@ -70,11 +70,12 @@ def train_challenge_model(data_folder, model_folder, verbose):
     location_order = ['AV', 'PV', 'TV', 'MV','Phc']
     #location_order = ['AV', 'PV', 'TV', 'MV'] 
     
-    
+     
     data_dict = {}
     # Extract the features and labels.
     if verbose >= 1:
         print('Extracting features and labels from the Challenge data...') 
+
     #for i in range(10):
      
     for i in range(num_patient_files):      
@@ -88,7 +89,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
         #print("Num recordings", len(current_recordings)) 
         # Create images
         #TODO MAKE SURE THE CORRECT NUMBER OF CHANNELS ARE BEING MADE    
-        patient_imgs = make_img(current_patient_data, current_recordings)  
+        patient_imgs = make_img_single(current_patient_data, current_recordings)  
          
         # Extract labels and use one-hot encoding.
         current_murmur_labels = np.zeros(num_murmur_classes, dtype=int)
@@ -123,7 +124,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
 
     # Comment out for submission
    
-    
+     
     #data_dict = list(hickle.load('pre_train_imgs.hickle').values()) 
    
     print("...Begin Training") 
@@ -134,7 +135,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     
     #wandb_logger = WandbLogger(project="cinc2022", name='model1.0') 
     # I changed it to model_folder bc that's the dir they'll make 
-    trainer = pl.Trainer(gpus=1, max_epochs=50, callbacks=[ModelCheckpoint(dirpath=model_folder, filename='best', monitor='train_loss', mode='min')])
+    trainer = pl.Trainer(gpus=1, max_epochs=5, callbacks=[ModelCheckpoint(dirpath=model_folder, filename='best', monitor='train_loss', mode='min')])
    
     # LOAD MODEL AFTER PRE-TRAINED 
     #TODO: Make sure we 
@@ -142,9 +143,9 @@ def train_challenge_model(data_folder, model_folder, verbose):
     #net = load_pretrained_model(model_folder, verbose)
     #net = load_challenge_model(model_folder, verbose)
     #TODO: Make sure we have the correct classifier here.  
-    #net = PCGClassifier_Single()  
-    net = PCGClassifier()
-    net.load_from_checkpoint("best_mini_2.ckpt") 
+    net = PCGClassifier_Single()  
+    #net = PCGClassifier()
+    net.load_from_checkpoint("best_single.ckpt") 
     net.train()
     trainer.fit(net, train_loader)
      
@@ -224,6 +225,20 @@ def collate_fn(batch):
 
 def collate_pretrain(batch):
     patient_imgs = [f["patient_imgs"].view(1,224,224).repeat(4,1,1) for f in batch]
+    outcome_labels = [f['label'] for f in batch] 
+    murmur_labels = [torch.tensor([1,0,0], dtype=torch.long) if torch.equal(f['label'], torch.tensor([1,0])) == True else torch.tensor([0,0,1], dtype=torch.long) for f in batch]
+    
+    patient_imgs = torch.stack(patient_imgs)
+    murmur_labels = torch.stack(murmur_labels).argmax(dim=1)
+    outcome_labels = torch.stack(outcome_labels).argmax(dim=1)
+
+    #print('labelsssss', labels)
+    outputs = {"patient_imgs": patient_imgs, "murmur_labels": murmur_labels, "outcome_labels": outcome_labels}  
+    return tuple(outputs.values())
+
+
+def collate_pretrain_single(batch):
+    patient_imgs = [f["patient_imgs"].view(1,224,224) for f in batch]
     outcome_labels = [f['label'] for f in batch] 
     murmur_labels = [torch.tensor([1,0,0], dtype=torch.long) if torch.equal(f['label'], torch.tensor([1,0])) == True else torch.tensor([0,0,1], dtype=torch.long) for f in batch]
     
@@ -331,6 +346,24 @@ def get_features(data, recordings):
 
     return np.asarray(features, dtype=np.float32)  
 
+def make_img_single(data, recordings): 
+     location_order = ['AV', 'PV', 'TV', 'MV','Phc']     
+     #Get the indices of current locations to use for padding 
+     locations = get_locations(data)
+         
+     # Get frequency of the recording to pre-process signal
+     fs = get_frequency(data)   
+     # here we go through all recordings for a patient, make an image per recording and update patient_imgs with recordings.  
+     #print(recordings) 
+     if len(recordings) > 1: 
+        rec = np.concatenate(np.array(recordings)) 
+     else:
+         rec = np.array(recordings[0]) 
+     #print(len(recordings)) 
+     g = Cinc_Graphs() 
+     patient_imgs = g.make_tde(rec, fs) 
+     #print("SHAPE: ", patient_imgs.shape) 
+     return patient_imgs
 
 def main(): 
     """ TRAIN """  
