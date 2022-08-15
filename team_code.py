@@ -92,7 +92,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
         patient_imgs = make_img_single(current_patient_data, current_recordings)  
          
         # Extract labels and use one-hot encoding.
-        current_murmur_labels = np.zeros(num_murmur_classes, dtype=int)
+        urrent_murmur_labels = np.zeros(num_murmur_classes, dtype=int)
         current_outcome_labels = np.zeros(num_outcome_classes, dtype=int)
         
         # THIS GETS LABELS FOR EACJ TASK
@@ -135,7 +135,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     
     #wandb_logger = WandbLogger(project="cinc2022", name='model1.0') 
     # I changed it to model_folder bc that's the dir they'll make 
-    trainer = pl.Trainer(gpus=1, max_epochs=5, callbacks=[ModelCheckpoint(dirpath=model_folder, filename='best', monitor='train_loss', mode='min')])
+    trainer = pl.Trainer(gpus=1, max_epochs=50, callbacks=[ModelCheckpoint(dirpath=model_folder, filename='best', monitor='train_loss', mode='min')])
    
     # LOAD MODEL AFTER PRE-TRAINED 
     #TODO: Make sure we 
