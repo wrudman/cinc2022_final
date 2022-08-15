@@ -70,7 +70,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     location_order = ['AV', 'PV', 'TV', 'MV','Phc']
     #location_order = ['AV', 'PV', 'TV', 'MV'] 
     
-     
+    
     data_dict = {}
     # Extract the features and labels.
     if verbose >= 1:
@@ -135,7 +135,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     
     #wandb_logger = WandbLogger(project="cinc2022", name='model1.0') 
     # I changed it to model_folder bc that's the dir they'll make 
-    trainer = pl.Trainer(gpus=1, max_epochs=50, callbacks=[ModelCheckpoint(dirpath=model_folder, filename='best', monitor='train_loss', mode='min')])
+    trainer = pl.Trainer(gpus=1, max_epochs=40, callbacks=[ModelCheckpoint(dirpath=model_folder, filename='best', monitor='train_loss', mode='min')])
    
     # LOAD MODEL AFTER PRE-TRAINED 
     #TODO: Make sure we 
@@ -145,7 +145,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     #TODO: Make sure we have the correct classifier here.  
     net = PCGClassifier_Single()  
     #net = PCGClassifier()
-    net.load_from_checkpoint("best_single.ckpt") 
+    net.load_from_checkpoint("best_single_mini.ckpt") 
     net.train()
     trainer.fit(net, train_loader)
      
