@@ -70,7 +70,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     location_order = ['AV', 'PV', 'TV', 'MV','Phc']
     #location_order = ['AV', 'PV', 'TV', 'MV'] 
     
-    
+     
     data_dict = {}
     # Extract the features and labels.
     if verbose >= 1:
@@ -92,7 +92,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
         patient_imgs = make_img_single(current_patient_data, current_recordings)  
          
         # Extract labels and use one-hot encoding.
-        urrent_murmur_labels = np.zeros(num_murmur_classes, dtype=int)
+        current_murmur_labels = np.zeros(num_murmur_classes, dtype=int)
         current_outcome_labels = np.zeros(num_outcome_classes, dtype=int)
         
         # THIS GETS LABELS FOR EACJ TASK
@@ -123,7 +123,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     #tracemalloc.stop()
 
     # Comment out for submission
-   
+    
      
     #data_dict = list(hickle.load('pre_train_imgs.hickle').values()) 
    
@@ -135,7 +135,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     
     #wandb_logger = WandbLogger(project="cinc2022", name='model1.0') 
     # I changed it to model_folder bc that's the dir they'll make 
-    trainer = pl.Trainer(gpus=1, max_epochs=40, callbacks=[ModelCheckpoint(dirpath=model_folder, filename='best', monitor='train_loss', mode='min')])
+    trainer = pl.Trainer(gpus=1, max_epochs=50, callbacks=[ModelCheckpoint(dirpath=model_folder, filename='best', monitor='train_loss', mode='min')])
    
     # LOAD MODEL AFTER PRE-TRAINED 
     #TODO: Make sure we 
@@ -145,7 +145,7 @@ def train_challenge_model(data_folder, model_folder, verbose):
     #TODO: Make sure we have the correct classifier here.  
     net = PCGClassifier_Single()  
     #net = PCGClassifier()
-    net.load_from_checkpoint("best_single_mini.ckpt") 
+    net.load_from_checkpoint("best_single_mini_drop.ckpt") 
     net.train()
     trainer.fit(net, train_loader)
      

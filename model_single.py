@@ -4,7 +4,7 @@ from torch import nn
 from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import precision_recall_fscore_support
 from resnet import ResNet18 
-
+import torch.nn.functional as F
 # TODO delete imports after cross val 
 #import hickle 
 #from sklearn.model_selection import train_test_split
@@ -18,8 +18,10 @@ class PCGClassifier_Single(pl.LightningModule):
         #CHANGE FOR SINGLE  
         self.img_encoder =ResNet18(1) #nn.Sequential(nn.Conv2d(5, 1, 1, stride=4), nn.Flatten(), nn.Linear(3136, 3))#ResNet18(5) #TODO define this elsewhere
         self.img_encoder.linear = nn.Identity() 
-        self.murmur_clf = nn.Linear(6076, 3) #MAGIC NUMBER change the 49
-        self.outcome_clf = nn.Linear(6076,2)
+        self.murmur_clf0 = nn.Linear(6076, 200) 
+        self.murmur_clf = nn.Linear(200, 3) #MAGIC NUMBER change the 49
+        self.outcome_clf0 = nn.Linear(6076, 200)
+        self.outcome_clf = nn.Linear(200,2)
         #self.clf_layer = nn.Linear(512, 3) #E.g. if hidden dimension is 512, go to 3: present, not present, unsure
         self.loss_fn = nn.CrossEntropyLoss()
         self.batch_size=10
@@ -35,8 +37,11 @@ class PCGClassifier_Single(pl.LightningModule):
         #this is independent of training step
         #basically use this for prediction
         x = self.img_encoder(x)
-        xmurm = self.murmur_clf(x)
-        xoutcome=self.outcome_clf(x)
+        xmurm0 = F.relu(self.murmur_clf0(x)) 
+        xmurm = self.murmur_clf(xmurm0)
+         
+        xoutcome0 = F.relu(self.outcome_clf0(x)) 
+        xoutcome=self.outcome_clf(xoutcome0)
         #print("X SHAPE", x.shape)
         #x = self.clf_layer(x)
         return xmurm, xoutcome

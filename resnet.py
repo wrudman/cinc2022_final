@@ -73,18 +73,18 @@ class Bottleneck(nn.Module):
 class ResNet(nn.Module):
     def __init__(self, block, num_blocks, num_leads, num_classes=3):
         super(ResNet, self).__init__()
-        self.in_planes = 32 
+        self.in_planes = 16 
         self.num_leads = num_leads
-        self.conv1 = nn.Conv2d(self.num_leads, 32, kernel_size=3,
+        self.conv1 = nn.Conv2d(self.num_leads, 16, kernel_size=3,
                                stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(32)
-        self.layer1 = self._make_layer(block, 32, num_blocks[0], stride=1)
-        self.layer2 = self._make_layer(block, 64, num_blocks[1], stride=2)
-        self.layer3 = self._make_layer(block, 128, num_blocks[2], stride=2)
-        self.layer4 = self._make_layer(block, 256, num_blocks[3], stride=2)
+        self.bn1 = nn.BatchNorm2d(16)
+        self.layer1 = self._make_layer(block, 16, num_blocks[0], stride=1)
+        self.layer2 = self._make_layer(block, 32, num_blocks[1], stride=2)
+        self.layer3 = self._make_layer(block, 64, num_blocks[2], stride=2)
+        self.layer4 = self._make_layer(block, 124, num_blocks[3], stride=2)
         
         # Mystery number. Change 49.  
-        self.linear = nn.Linear(12544, num_classes)
+        self.linear = nn.Linear(124*49, num_classes)
 
     def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1]*(num_blocks-1)
@@ -95,10 +95,14 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
+        do = nn.Dropout(p=0.5) 
         out = F.relu(self.bn1(self.conv1(x)))
         out = self.layer1(out)
+        out = do(out) 
         out = self.layer2(out)
+        out = do(out)       
         out = self.layer3(out)
+        out = do(out) 
         out = self.layer4(out)
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
